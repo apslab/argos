@@ -34,8 +34,8 @@ describe RestResource do
   end
 
   before(:each) do 
-    credential = Oauth::Applications::Credential.new('inventario', 'xxxxxxxx', '12345678901234567890123456789012', 'http://inventario.com')
-    Oauth::Applications.stub!(:by_name).with('inventario').and_return(credential)
+    credential = Argos::Oauth::Applications::Credential.new('inventario', 'xxxxxxxx', '12345678901234567890123456789012', 'http://inventario.com')
+    Argos::Oauth::Applications.stub!(:by_name).with('inventario').and_return(credential)
   end
 
   describe "#provider" do

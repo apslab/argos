@@ -1,4 +1,4 @@
-require 'oauth/applications'
+require 'argos/oauth/applications'
 require 'rest-client'
 # Inherit this class to ease the consume of remote rest resources with {http://tools.ietf.org/html/rfc5849 oauth 1.0} 2 legged support
 #
@@ -107,7 +107,7 @@ class RestResource
   def self.provider(provider = nil)
     @provider = provider.to_s unless provider.blank?
     raise "You must specify the provider in the class #{name}" unless @provider
-    Oauth::Applications.by_name(@provider)
+    Argos::Oauth::Applications.by_name(@provider)
   end
 
   private
