@@ -1,5 +1,35 @@
+
 module Argos
+  # Include this module to provide a security methods {#login_required} 
+  # and {#current_user}.
+  #
+  # This methods provide the basic requirements to securing the access to the inherit controllers either by
+  # a login user (session) or by rest consume (without session) over oauth.
+  #
+  # Example of use:
+  #
+  #   class ApplicationController < ActionController::Base
+  #     include Argos::Security
+  #
+  #   end
+  #
+  # and use in your own controller
+  #
+  #   class MyresourceController < ApplicationController
+  #     before_filter :login_required
+  #
+  #   end
+  # 
   module Security
+
+    # Verifies that the user is logged or, in the case of REST consume from another application without human 
+    # intervention, the credentials are correct.  
+    # For verify credential this method use {http://tools.ietf.org/html/rfc5849 oauth 1.0}.  Verifying the HTTP 
+    # header "Authorization"
+    #
+    # This method is used as filter in your controllers
+    #   before_filter :login_required
+    #   
     def login_required
       # if oauth authorization, check oauth
       # else current_user
@@ -10,6 +40,8 @@ module Argos
       end
     end
 
+    # Retrieve the user from session
+    # @return [User, nil]
     def current_user
       return nil unless session[:user_uid]
       @current_user ||= User.find_by_uid(session[:user_uid])
