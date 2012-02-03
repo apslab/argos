@@ -1,0 +1,12 @@
+------------------------------------------------------
+Agregar al app/controller/application_controller.rb:
+
+  include Security
+
+con ello ya puede utilizar, en los controllers, el 
+filtro para requerir un usuario autenticado:
+
+  before_filter :login_required
+
+
+------------------------------------------------------

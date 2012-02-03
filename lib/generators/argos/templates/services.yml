@@ -1,0 +1,15 @@
+development:
+  inventario:
+    url: 'http://127.0.0.1:3000'
+    identifier: '761e2621'
+    secret: '8740dbce820d968fe4c98a15cf1dd309'
+  ventas:
+    identifier: 'i39x9mq1'
+    secret: '1340dbce820ds68fe4c9xa15cf1dd3wp'
+test:
+  inventario:
+    url: 'http://127.0.0.1:3000'
+    identifier: '761e2621'
+    secret: '8740dbce820d968fe4c98a15cf1dd309'
+
+production:

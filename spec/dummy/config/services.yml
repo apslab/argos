@@ -1,0 +1,5 @@
+test:
+  inventario:
+    url: 'http://127.0.0.1:3000'
+    identifier: '761e2621'
+    secret: '8740dbce820d968fe4c98a15cf1dd309'
