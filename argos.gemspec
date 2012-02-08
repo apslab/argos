@@ -18,6 +18,8 @@ Gem::Specification.new do |s|
   s.add_dependency "rails", "~> 3.1.3"
   s.add_dependency 'omniauth'
   s.add_dependency 'omniauth-oauth2'
+  s.add_dependency 'rest-client'
+  s.add_dependency 'oauth'
   # s.add_dependency "jquery-rails"
 
 

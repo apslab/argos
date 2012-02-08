@@ -1,12 +1,30 @@
-------------------------------------------------------
-Agregar al app/controller/application_controller.rb:
+######################################################
 
-  include Security
+Agregar a app/controller/application_controller.rb:
+
+  include Argos::Security
 
 con ello ya puede utilizar, en los controllers, el 
 filtro para requerir un usuario autenticado:
 
   before_filter :login_required
 
+No olvide asignar una página al ruteo root.  Para ello
+agregue en config/routes.rb:
 
-------------------------------------------------------
+  root :to => 'welcome#index'
+
+
+Configuración del servicio SSO
+------------------------------
+
+Para configurar el accesso al servicio de SSO debe 
+modificar el archivo config/initializers/omniauth.rb
+
+
+Configuración de accesso a servicios REST
+------------------------------------------
+
+Para configurar la interacción con servicios externos
+debe agregar la información al archivo config/services.yml
+

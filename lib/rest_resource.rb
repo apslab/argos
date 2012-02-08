@@ -1,5 +1,6 @@
 require 'argos/oauth/applications'
 require 'rest-client'
+require 'oauth'
 # Inherit this class to ease the consume of remote rest resources with {http://tools.ietf.org/html/rfc5849 oauth 1.0} 2 legged support
 #
 # Example:
@@ -110,6 +111,14 @@ class RestResource
     Argos::Oauth::Applications.by_name(@provider)
   end
 
+  def save
+    self.class.add_oauth_authorization
+    url = self.class.ws_url
+    url << "/#{id}"
+    response = RestClient.put(url, instance_values, {:content_type => 'application/json', :accept => :json}) 
+    ActiveSupport::JSON.decode(response.body)
+  end
+
   private
 
   def self.initialize_resource(hash)
@@ -143,9 +152,22 @@ class RestResource
     if RestClient.before_execution_procs.empty?
       RestClient.add_before_execution_proc do |req, params|
         #web_service = Oauth::Applications.by_name(provider)
-        #consumer = OAuth::Consumer.new(web_service.identifier, web_service.secret)
-        consumer = OAuth::Consumer.new(provider.identifier, provider.secret)
-        oauth_helper = OAuth::Client::Helper.new(req, {:consumer => consumer, :request_uri => params[:url]})
+        #consumer = OAuth::Consumer.new(web_service.identifier, web_service.secret)        
+        consumer = ::OAuth::Consumer.new(provider.identifier, provider.secret)
+        options = params.nil? ? {} : params.fetch(:payload, {})
+        rq = ::OAuth::RequestProxy.proxy(req, options.merge({:consumer => consumer, :uri => params[:url]}) )
+        puts "Signature method: #{rq.signature_method}"
+        puts "Request: #{req}"
+        #req.each_key { |k| puts k }
+        puts "Request path: #{req.path}"
+        #puts "Request methods: #{req.methods}"
+        puts "Request body: #{req.body}"
+        puts "Proxy class: #{rq.class.name}"
+        puts "Oauth parameteres: #{rq.parameters}"
+        puts "params: #{params}"
+        puts "payload: #{params[:payload]}"
+        oauth_helper = ::OAuth::Client::Helper.new(rq, {:consumer => consumer, :request_uri => params[:url]})        
+        puts "Helper parameters: #{oauth_helper.parameters}"
         req["Authorization"] = oauth_helper.header
       end
     end
