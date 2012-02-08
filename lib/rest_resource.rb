@@ -1,6 +1,8 @@
 require 'argos/oauth/applications'
-require 'rest-client'
+#require 'rest-client'
 require 'oauth'
+require 'net/http'
+require 'uri'
 # Inherit this class to ease the consume of remote rest resources with {http://tools.ietf.org/html/rfc5849 oauth 1.0} 2 legged support
 #
 # Example:
@@ -20,8 +22,8 @@ class RestResource
     return nil if id.nil?
     hash = invoke(:get, "/#{id}")
     initialize_resource(hash)
-    rescue RestClient::ResourceNotFound
-      raise 'Resource not found'
+  #  rescue RestClient::ResourceNotFound
+  #    raise 'Resource not found'
   end
 
   def self.all
@@ -112,11 +114,7 @@ class RestResource
   end
 
   def save
-    self.class.add_oauth_authorization
-    url = self.class.ws_url
-    url << "/#{id}"
-    response = RestClient.put(url, instance_values, {:content_type => 'application/json', :accept => :json}) 
-    ActiveSupport::JSON.decode(response.body)
+    self.class.invoke(:put, "/#{id}", instance_values)
   end
 
   private
@@ -141,36 +139,54 @@ class RestResource
     url
   end
 
-  def self.invoke(action, extend_path = nil)
-    add_oauth_authorization
-    url = ws_url(extend_path)
-    response = RestClient.send(action, url, :accept => :json) 
-    ActiveSupport::JSON.decode(response.body)
+  def self.invoke(action, extend_path = nil, parameters = {})
+    uri = uri(extend_path)
+    puts "URL: #{uri.to_s}"
+    req = http_action(action).new(uri.request_uri)
+    unless parameters.empty?
+      req.body = parameters.to_json
+    end
+    #req = Net::HTTP::Get.new(uri.request_uri)
+    req['Content-Type'] =  "application/json"
+    req['Accept'] = 'application/json'
+    add_oauth_header(req, uri)
+    http = Net::HTTP.new(uri.host, uri.port)
+    response = http.request(req)
+    # TODO: Se debería quitar la relación con ActiveSupport?
+    response.body.strip.empty? ? nil : ActiveSupport::JSON.decode(response.body)
   end
 
-  def self.add_oauth_authorization
-    if RestClient.before_execution_procs.empty?
-      RestClient.add_before_execution_proc do |req, params|
-        #web_service = Oauth::Applications.by_name(provider)
-        #consumer = OAuth::Consumer.new(web_service.identifier, web_service.secret)        
-        consumer = ::OAuth::Consumer.new(provider.identifier, provider.secret)
-        options = params.nil? ? {} : params.fetch(:payload, {})
-        rq = ::OAuth::RequestProxy.proxy(req, options.merge({:consumer => consumer, :uri => params[:url]}) )
-        puts "Signature method: #{rq.signature_method}"
-        puts "Request: #{req}"
-        #req.each_key { |k| puts k }
-        puts "Request path: #{req.path}"
-        #puts "Request methods: #{req.methods}"
-        puts "Request body: #{req.body}"
-        puts "Proxy class: #{rq.class.name}"
-        puts "Oauth parameteres: #{rq.parameters}"
-        puts "params: #{params}"
-        puts "payload: #{params[:payload]}"
-        oauth_helper = ::OAuth::Client::Helper.new(rq, {:consumer => consumer, :request_uri => params[:url]})        
-        puts "Helper parameters: #{oauth_helper.parameters}"
-        req["Authorization"] = oauth_helper.header
+  def self.add_oauth_header(req, uri)
+    consumer = ::OAuth::Consumer.new(provider.identifier, provider.secret)
+    oauth_helper = ::OAuth::Client::Helper.new(req, {:consumer => consumer, :uri => uri.to_s})        
+    puts "Helper parameters: #{oauth_helper.parameters}"
+    req["Authorization"] = oauth_helper.header
+  end
+
+  # @return [String] Example: http://ip:port/resource
+  def self.base_url
+    unless @base_url
+      url = resource_url
+      if url.nil?
+        url = provider.url.clone
+        url << "/" unless url.last == "/"
+        url << resource_name
       end
+      @base_url = url
     end
+    @base_url
+  end
+
+  def self.uri(request_uri)
+    URI.parse(base_url + request_uri)
+  end
+
+  def self.http_action(action)
+    @@actions ||= { :get    => Net::HTTP::Get,
+                    :post   => Net::HTTP::Post,
+                    :put    => Net::HTTP::Put,
+                    :delete => Net::HTTP::Delete   }
+    @@actions[action]
   end
 
 end
