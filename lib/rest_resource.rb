@@ -18,9 +18,11 @@ require 'uri'
 #
 class RestResource
 
+  #include ActiveModel::Validations
+
   def self.find(id)
     return nil if id.nil?
-    hash = invoke(:get, "/#{id}")
+    hash = invoke(nil, :get, "/#{id}")
     initialize_resource(hash)
   #  rescue RestClient::ResourceNotFound
   #    raise 'Resource not found'
@@ -114,7 +116,16 @@ class RestResource
   end
 
   def save
-    self.class.invoke(:put, "/#{id}", instance_values)
+    puts self
+    self.class.invoke(self, :put, "/#{id}", instance_values)
+  end
+
+  def valid?
+    errors.empty?
+  end
+  
+  def errors
+    @errors ||= Errors.new
   end
 
   private
@@ -139,7 +150,7 @@ class RestResource
     url
   end
 
-  def self.invoke(action, extend_path = nil, parameters = {})
+  def self.invoke(instance, action, extend_path = nil, parameters = {})
     uri = uri(extend_path)
     puts "URL: #{uri.to_s}"
     req = http_action(action).new(uri.request_uri)
@@ -153,7 +164,22 @@ class RestResource
     http = Net::HTTP.new(uri.host, uri.port)
     response = http.request(req)
     # TODO: Se debería quitar la relación con ActiveSupport?
-    response.body.strip.empty? ? nil : ActiveSupport::JSON.decode(response.body)
+    puts response.code
+    response_body = response.body.strip.empty? ? nil : ActiveSupport::JSON.decode(response.body)
+    puts instance if instance
+    if response.code.to_i == 422
+      puts "Response code is 422"
+      response_body.each do |attr, errors|
+        puts "errors.is_a? Array #{errors.is_a?(Array) ? 'true' : 'false'}"
+        if errors.is_a? Array
+          errors.each { |error| instance.errors.add(attr, error) }
+        else
+          instance.error.add(attr, errors)
+        end
+      end
+    end
+
+    response_body
   end
 
   def self.add_oauth_header(req, uri)
@@ -189,5 +215,21 @@ class RestResource
     @@actions[action]
   end
 
+  class Errors < DelegateClass(Hash)
+    def initialize
+      super(Hash.new)
+    end
+
+    def add(attr, error)
+      unless key?(attr)
+        self[attr] = []
+      end
+      self[attr] << error
+    end
+
+
+  end
+
 end
+
 
