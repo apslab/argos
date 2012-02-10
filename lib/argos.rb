@@ -5,6 +5,8 @@ require 'argos/security'
 require 'rest_resource'
 require 'active_resource/oauth/base'
 require 'active_resource/oauth/connection'
+require 'active_resource/oauth/connection'
+require 'active_resource/oauth/provider_resolver'
 
 module Argos
 end
