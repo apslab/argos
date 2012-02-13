@@ -133,6 +133,7 @@ PLATFORMS
 DEPENDENCIES
   argos!
   jquery-rails
+  oauth
   omniauth
   rest-client
   rspec

@@ -1,4 +1,5 @@
-module ActiveResource
+require 'oauth'
+module Argos
   module Oauth
     class Connection < ActiveResource::Connection
 

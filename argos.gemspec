@@ -28,4 +28,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency 'rest-client'
   s.add_development_dependency 'omniauth'
+  s.add_development_dependency 'oauth'
 end
