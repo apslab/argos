@@ -1,3 +1,4 @@
+require 'active_support/concern'
 
 module Argos
   # Include this module to provide a security methods {#login_required} 
@@ -19,8 +20,21 @@ module Argos
   #     before_filter :login_required
   #
   #   end
+  #
+  # Beside this, set the current in the context of the actual thread to allow the access in the model context.
+  # This is required to send the user in the REST consumtion through ActiveResource::Base with Oauth support ({Argos::OauthSupport}).
+  # You can access to the current user through:
+  #
+  #   User.current
   # 
   module Security
+
+    extend ActiveSupport::Concern
+
+    included do
+      around_filter :set_current_user
+    end
+
 
     # Verifies that the user is logged or, in the case of REST consume from another application without human 
     # intervention, the credentials are correct.  
@@ -48,6 +62,15 @@ module Argos
     end
 
     private
+
+    def set_current_user
+      User.current = current_user
+      begin
+        yield
+      ensure
+        User.current_user = nil
+      end
+    end
 
     def rest_consumption?
       not request.authorization.nil?
@@ -78,6 +101,7 @@ module Argos
       logger.debug("signature.request.nonce: #{signature.request.nonce}")
       
       if signature.verify && Oauth::Nonce.remember(signature.request.nonce, signature.request.timestamp)
+        logger.debug("PARAMETERS: #{signature.request.parameters}")
         # TODO: Ver como enviar el usuario en todas las peticiones.
         #@current_user = User.first
         session[:user_uid] = User.first.uid

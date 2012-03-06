@@ -1,3 +1,9 @@
 = Argos
 
 This project rocks and uses MIT-LICENSE.
+
+== TODO
+
+* Create a generator for create a User model
+* Transport user id in every request (when use ActiveResource)
+* Mocking rest consumtion in development environment

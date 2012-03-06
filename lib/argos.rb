@@ -7,5 +7,7 @@ require 'argos/oauth/applications'
 require 'argos/oauth_support'
 require 'argos/oauth/connection'
 
+require 'generators/argos/migration_number_helper'
+
 module Argos
 end

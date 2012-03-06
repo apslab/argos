@@ -47,7 +47,8 @@ module Argos
     # @param [String, Symbol] the name used internally in the file config/services.yml
     # @return [nil]
     def provider=(provider)
-      @provider = Argos::Oauth::Applications.by_name(provider)
+      @provider = Argos::Oauth::Applications.by_name(provider.to_s)
+      raise "The provider '#{provider.to_s}' is not defined in the file config/services.yml" if @provider.nil?
       self.oauth_identifier = @provider.identifier
       self.oauth_secret = @provider.secret
       self.site = @provider.url

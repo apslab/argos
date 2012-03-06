@@ -1,30 +1,49 @@
-######################################################
+__________________________________________________________________________
 
-Agregar a app/controller/application_controller.rb:
+Pasos a seguir para completar la instalación
+--------------------------------------------
 
-  include Argos::Security
+  Agregar a app/controller/application_controller.rb:
 
-con ello ya puede utilizar, en los controllers, el 
-filtro para requerir un usuario autenticado:
+    include Argos::Security
 
-  before_filter :login_required
+  con ello ya puede utilizar, en los controllers, el 
+  filtro para requerir un usuario autenticado:
 
-No olvide asignar una página al ruteo root.  Para ello
-agregue en config/routes.rb:
+    before_filter :login_required
 
-  root :to => 'welcome#index'
+  No olvide asignar una página al ruteo root.  Para ello
+  agregue en config/routes.rb:
+
+    root :to => 'welcome#index'
+
+
+  A continuación, si aun no posee el modelo User, debe ejecutar
+
+    rails g argos:user
+
+  para la creación del usuario básico.
+  Si ya posee el modelo user, debe extenderlo utilizando el módulo
+  Argos::ActsAsCurrent del siguiente modo:
+
+    class User < ActiveRecord::Base
+      extend Argos::ActsAsCurrent
+  
+    end
 
 
 Configuración del servicio SSO
 ------------------------------
 
-Para configurar el accesso al servicio de SSO debe 
-modificar el archivo config/initializers/omniauth.rb
+  Para configurar el accesso al servicio de SSO debe 
+  modificar el archivo config/initializers/omniauth.rb
 
 
 Configuración de accesso a servicios REST
 ------------------------------------------
 
-Para configurar la interacción con servicios externos
-debe agregar la información al archivo config/services.yml
+  Para configurar la interacción con servicios externos
+  debe agregar la información al archivo config/services.yml
+
+__________________________________________________________________________
 

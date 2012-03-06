@@ -34,6 +34,8 @@ module Argos
         req = http_action(method).new(path)
         if arguments.size == 2
           # get body and header
+          puts "body: #{arguments[0]}"
+          puts "headers: #{arguments[1]}"
           req.body = arguments[0]
           headers = arguments[1]
         else
