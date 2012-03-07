@@ -68,7 +68,7 @@ module Argos
       begin
         yield
       ensure
-        User.current_user = nil
+        User.current = nil
       end
     end
 
@@ -96,15 +96,16 @@ module Argos
       end
       logger.debug("Signature class: #{signature}")
       logger.debug("#signature: #{signature.signature}")
+      logger.debug("#request signature: #{signature.request.signature}")
       logger.debug("#verify: #{signature.verify}")
       # http://rubydoc.info/github/oauth/oauth-ruby/master/OAuth/RequestProxy/Base
       logger.debug("signature.request.nonce: #{signature.request.nonce}")
-      
+      logger.debug("headers: #{request.headers['user_uid']} #{request.headers['Authorization']}") 
       if signature.verify && Oauth::Nonce.remember(signature.request.nonce, signature.request.timestamp)
-        logger.debug("PARAMETERS: #{signature.request.parameters}")
-        # TODO: Ver como enviar el usuario en todas las peticiones.
+        logger.debug("User UID: #{params[:user_uid]}")
         #@current_user = User.first
-        session[:user_uid] = User.first.uid
+        # TODO: Reject if not find user?
+        session[:user_uid] = User.find_by_uid(params[:user_uid])
       else
         render :json => { 'error' => 'Access Denied' }.to_json, :status => :unauthorized
       end
