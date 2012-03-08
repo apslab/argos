@@ -21,9 +21,10 @@ module Argos
   #
   module OauthSupport
 
-    attr_accessor :oauth_identifier, :oauth_secret
+    attr_accessor :oauth_identifier, :oauth_secret, :requesting_user
 
     def connection(refresh = false)
+      validates_requested_parameters
       if defined?(@connection) || superclass == Object
         @connection = Argos::Oauth::Connection.new(site, format) if refresh || @connection.nil?
         @connection.proxy = proxy if proxy
@@ -34,10 +35,21 @@ module Argos
         @connection.ssl_options = ssl_options if ssl_options
         @connection.oauth_secret = oauth_secret if oauth_secret
         @connection.oauth_identifier = oauth_identifier if oauth_identifier
+        @connection.requesting_user_uid = requesting_user.uid if requesting_user
         @connection
       else
         superclass.connection
       end
+    end
+
+    private
+
+    def validates_requested_parameters
+      unset_parameters = []
+      unset_parameters << 'requesting_user' if requesting_user.nil?
+      unset_parameters << 'oauth_identifier' if oauth_identifier.nil?
+      unset_parameters << 'oauth_secret' if oauth_secret.nil?
+      raise "You need to specify the parameters: #{unset_parameters.to_sentence} in the #{self.name} class" unless unset_parameters.empty?
     end
 
   end

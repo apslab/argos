@@ -1,50 +1,52 @@
 require 'oauth'
 module Argos
   module Oauth
+    # Refactoring {http://api.rubyonrails.org/classes/ActiveResource/Connection.html ActiveResource::Connection} to 
+    # support oauth headers through the {https://github.com/oauth/oauth-ruby oauth-ruby} gem.
+    # Added the parameters :oauth_identifier, :oauth_secret and :requesting_user_uid.
+    #  
+    #  * oauth_identifier: The id of the application consumer
+    #  * oauth_secret: The secret of the application consumer (not send in the request)
+    #  * requesting_user_uid: The UID of the requester user (for validate in the consumed service)
+    #
     class Connection < ActiveResource::Connection
 
-      def oauth_identifier=(identifier)
-        @oauth_identifier = identifier
-      end
-
-      
-      def oauth_secret=(secret)
-        @oauth_secret = secret
-      end
+      attr_writer :requesting_user_uid, :oauth_identifier, :oauth_secret 
 
       private 
       
       def http_action(action)
-        @@actions ||= { :get    => { :implementation => Net::HTTP::Get, :body_permitted? => false },
-                        :post   => { :implementation => Net::HTTP::Post, :body_permitted? => true },
-                        :put    => { :implementation => Net::HTTP::Put, :body_permitted? => true },
-                        :delete => { :implementation => Net::HTTP::Delete, :body_permitted? => false },
-                        :head   => { :implementation => Net::HTTP::Head, :body_permitted? => false }
+        @@actions ||= { :get    => Net::HTTP::Get,
+                        :post   => Net::HTTP::Post,
+                        :put    => Net::HTTP::Put,
+                        :delete => Net::HTTP::Delete,
+                        :head   => Net::HTTP::Head
                       }
         @@actions[action]
       end
 
       def add_oauth_header(req, path)
         consumer = ::OAuth::Consumer.new(@oauth_identifier, @oauth_secret)
-        oauth_helper = ::OAuth::Client::Helper.new(req, {:consumer => consumer, :uri => @site.merge(path).to_s, :oauth_user_uid => User.current.uid})        
+        oauth_helper = ::OAuth::Client::Helper.new(req, {:consumer => consumer, :uri => @site.merge(path).to_s})        
         req["Authorization"] = oauth_helper.header
-        puts req["Authorization"]
       end
 
+      def path_with_requesting_user(path)
+        glue_char = path.include?('?') ? '&' : '?'
+        path << "#{glue_char}user_uid=#{@requesting_user_uid}"
+      end
+ 
 
       def request(method, path, *arguments)
-        action = http_action(method)
-        path << "?user_uid=#{User.current.uid}" unless action[:body_permitted?]
-        req = action[:implementation].new(path)
+        
+        req = http_action(method).new(path_with_requesting_user(path))
         if arguments.size == 2
           # get body and header
-          puts "body: #{arguments[0]}"
           req.body = arguments[0]
           headers = arguments[1]
         else
           headers = arguments[0]
         end
-        req.body << "user_uid=#{User.current.uid}" if action[:body_permitted?]
         req.initialize_http_header(headers)
         add_oauth_header(req, path)
 
@@ -62,7 +64,7 @@ module Argos
         end
       end
 
-      
+     
   end
 end
 
