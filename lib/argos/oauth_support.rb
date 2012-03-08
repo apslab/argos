@@ -3,7 +3,8 @@ module Argos
   # This module extend the {http://api.rubyonrails.org/classes/ActiveResource/Base.html ActiveResource::Base} 
   # from rails to support OAuth autentication.
   #
-  # You need to set the properties {http://api.rubyonrails.org/classes/ActiveResource/Base.html site}, oauth_identifier and oauth_secret.
+  # You need to set the properties {http://api.rubyonrails.org/classes/ActiveResource/Base.html site}, {#oauth_identifier}, 
+  # {#oauth_secret} and {#requesting_user_uid} in the model extending this module.
   #
   # Example:
   #
@@ -15,13 +16,25 @@ module Argos
   #     self.oauth_secret = '8740dbce820d968fe4c98a15cf1dd309'
   #   end
   #
-  # with this configuration already have to use as ActiveResource model normaly
+  # with this configuration already have to use as ActiveResource model normaly.
+  #
+  # Example of use:
+  #
+  #   Product.requesting_user_uid = current_user.uid  # Set the current user as consumer
+  #   p = Product.find(3)                             # retrieve the first product
+  #   puts p.id
+  #   # 3
   #
   # For externalize the configuration see {Argos::ProviderResolver}
+  # 
+  # You need to set the uid of the requester user (see {Argos::OauthSupport.requesting_user_uid}). This attribute
+  # is required for send to the remote service.
+  #
+  # @note The class attributes: requesting_user_uid, oauth_identifier and oauth_secret are required.
   #
   module OauthSupport
 
-    attr_accessor :oauth_identifier, :oauth_secret, :requesting_user
+    attr_accessor :oauth_identifier, :oauth_secret, :requesting_user_uid
 
     def connection(refresh = false)
       validates_requested_parameters
@@ -35,7 +48,7 @@ module Argos
         @connection.ssl_options = ssl_options if ssl_options
         @connection.oauth_secret = oauth_secret if oauth_secret
         @connection.oauth_identifier = oauth_identifier if oauth_identifier
-        @connection.requesting_user_uid = requesting_user.uid if requesting_user
+        @connection.requesting_user_uid = requesting_user_uid if requesting_user_uid
         @connection
       else
         superclass.connection
@@ -46,7 +59,7 @@ module Argos
 
     def validates_requested_parameters
       unset_parameters = []
-      unset_parameters << 'requesting_user' if requesting_user.nil?
+      unset_parameters << 'requesting_user_uid' if requesting_user_uid.nil?
       unset_parameters << 'oauth_identifier' if oauth_identifier.nil?
       unset_parameters << 'oauth_secret' if oauth_secret.nil?
       raise "You need to specify the parameters: #{unset_parameters.to_sentence} in the #{self.name} class" unless unset_parameters.empty?

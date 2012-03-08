@@ -6,7 +6,6 @@
 # - email
 #
 class User < ActiveRecord::Base 
-  extend Argos::ActsAsCurrent
 
   validates_presence_of :email, :uid
 
