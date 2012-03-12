@@ -104,5 +104,7 @@ The module Argos::OauthSupport add the attribute (not persistent) requesting&#95
 
 For more information you can see {Argos::OauthSupport} and {Argos::ProviderResolver}.
 
+You can access to RDoc documentation [here](http://rdoc.info/github/apslab/argos/file/README.md)
+
 
 This project rocks and uses MIT-LICENSE.
