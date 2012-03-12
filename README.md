@@ -35,7 +35,7 @@ Now you can secure your controllers adding:
 ## SSO service configuration
 
 The configuration file config/initializers/omniauth.rb include the url of SSO Service, your (of your application) ID and secret. 
-The service work with OAuth (v2) as an strategy of {https://github.com/intridea/omniauth omniauth}.
+The service work with OAuth (v2) as an strategy of [omniauth](https://github.com/intridea/omniauth).
 
 This implementation require an User model loaded in response to SSO Service.  This model must include the attributes: uid (universal ID), first&#95;name, last&#95;name and email (all as string).  This attributes are loaded when the user sign in currectly.
 
@@ -77,7 +77,7 @@ The structure of this file are:
 
 environment &raquo; service_name &raquo; url, identifier and secret
 
-For implement the class that consume this services you use {http://api.rubyonrails.org/classes/ActiveResource/Base.html ActiveResource::Base} and extend {Argos::OauthSupport} for supporting OAuth autorization (2 legged).
+For implement the class that consume this services you use [ActiveResource::Base](http://api.rubyonrails.org/classes/ActiveResource/Base.html) and extend [Argos::OauthSupport](http://rdoc.info/github/apslab/argos/master/Argos/OauthSupport) for supporting OAuth autorization (2 legged).
 
 Example of use:
 
@@ -102,7 +102,7 @@ With this example you configure the service without using the service.yml file. 
 The module Argos::OauthSupport add the attribute (not persistent) requesting&#95;user&#95;uid that represent the UID user applicant sended in the request to the remote service.  You need to set this before use the remote model.
 
 
-For more information you can see {Argos::OauthSupport} and {Argos::ProviderResolver}.
+For more information you can see [Argos::OauthSupport](http://rdoc.info/github/apslab/argos/master/Argos/OauthSupport) and [Argos::ProviderResolver](http://rdoc.info/github/apslab/argos/master/Argos/ProviderResolver).
 
 You can access to RDoc documentation [here](http://rdoc.info/github/apslab/argos/file/README.md)
 
